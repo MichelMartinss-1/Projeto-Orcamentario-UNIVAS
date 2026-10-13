@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Bolso — Seu dinheiro no seu controle</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#10B981;--gl:#D1FAE5;--gd:#065F46;
+  --b:#3B82F6;--bl:#EFF6FF;--bd:#1E40AF;
+  --o:#F59E0B;--ol:#FEF3C7;
+  --r:#EF4444;--rl:#FEE2E2;
+  --bg:#F0FDF8;--tx:#111827;--mu:#6B7280;--br:#E5E7EB;
+  --rad:16px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);font-size:16px;line-height:1.6}
+
+/* ── TELA DE LOGIN ── */
+#login-screen{
+  position:fixed;inset:0;z-index:300;
+  background:linear-gradient(160deg,#F0FDF8,#EFF6FF);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+#login-screen.gone{display:none}
+.lcard{
+  background:#fff;border-radius:24px;padding:36px 32px;
+  max-width:420px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.10);
+  text-align:center;animation:fadeUp .35s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.lcard .lic{font-size:52px;margin-bottom:8px}
+.lcard h1{font-size:1.6rem;font-weight:700;color:var(--gd);margin-bottom:6px}
+.lcard .lsub{font-size:14px;color:var(--mu);margin-bottom:28px;line-height:1.5}
+
+.field{text-align:left;margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:500;color:var(--mu);margin-bottom:5px}
+.field input{
+  width:100%;padding:12px 14px;
+  border:1.5px solid var(--br);border-radius:10px;
+  font-size:15px;font-family:'Inter',sans-serif;
+  outline:none;transition:border-color .2s;color:var(--tx);
+}
+.field input:focus{border-color:var(--g)}
+
+.btn-verde{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:13px;border-radius:12px;border:none;
+  background:var(--g);color:#fff;
+  font-size:15px;font-weight:600;font-family:'Inter',sans-serif;
+  cursor:pointer;transition:all .2s;margin-top:4px;
+  box-shadow:0 4px 16px rgba(16,185,129,.3);
+}
+.btn-verde:hover{background:#059669;transform:translateY(-1px)}
+.btn-verde:active{transform:none}
+
+.btn-link-verde{
+  background:transparent;color:var(--g);
+  border:1.5px solid var(--g);
+}
+.btn-link-verde:hover{background:var(--gl);transform:none;box-shadow:none}
+
+.msg-erro{
+  background:var(--rl);color:#991B1B;
+  border-radius:9px;padding:10px 13px;
+  font-size:13px;margin-bottom:12px;
+  text-align:left;display:none;
+}
+.toggle-txt{margin-top:16px;font-size:13px;color:var(--mu)}
+.toggle-txt a{color:var(--g);font-weight:600;cursor:pointer}
+.toggle-txt a:hover{text-decoration:underline}
+
+/* tag de usuário salvo */
+.saved-users{margin-top:20px;text-align:left}
+.saved-users p{font-size:12px;color:var(--mu);margin-bottom:8px;font-weight:500}
+.saved-user-btn{
+  display:flex;align-items:center;gap:10px;width:100%;
+  background:var(--gl);border:1px solid #A7F3D0;border-radius:10px;
+  padding:9px 12px;margin-bottom:6px;cursor:pointer;transition:background .2s;
+  font-family:'Inter',sans-serif;
+}
+.saved-user-btn:hover{background:#A7F3D0}
+.saved-user-btn .av{
+  width:30px;height:30px;border-radius:50%;background:var(--g);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.saved-user-btn .info{flex:1;text-align:left}
+.saved-user-btn .info strong{display:block;font-size:13px;font-weight:600;color:var(--gd)}
+.saved-user-btn .info small{font-size:11px;color:var(--mu)}
+
+/* ── NAV ── */
+#app{display:none}
+#app.on{display:block}
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.93);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--br);
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.nav-logo{font-weight:700;font-size:17px;color:var(--gd);display:flex;align-items:center;gap:7px;white-space:nowrap}
+.nav-logo span{font-size:20px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{text-decoration:none;color:var(--mu);font-size:13px;font-weight:500;padding:5px 10px;border-radius:8px;transition:all .2s}
+.nav-links a:hover{background:var(--gl);color:var(--gd)}
+.nav-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+#sync{font-size:11px;font-weight:500;padding:3px 8px;border-radius:6px;white-space:nowrap;transition:all .3s}
+#sync.saving{background:var(--ol);color:#92400E}
+#sync.saved {background:var(--gl);color:var(--gd)}
+
+.uchip{
+  display:flex;align-items:center;gap:7px;
+  background:var(--gl);border-radius:20px;
+  padding:4px 12px 4px 4px;cursor:pointer;transition:background .2s;
+}
+.uchip:hover{background:#A7F3D0}
+.uav{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--g);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.uname{font-size:13px;font-weight:500;color:var(--gd);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── HERO ── */
+.hero{
+  min-height:88vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:64px 20px 48px;
+  background:linear-gradient(160deg,#F0FDF8,#EFF6FF);
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-120px;right:-120px;
+  width:520px;height:520px;
+  background:radial-gradient(circle,rgba(16,185,129,.12),transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--gl);color:var(--gd);font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;margin-bottom:24px}
+.hero h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:700;line-height:1.2;max-width:700px;margin-bottom:18px}
+.hero h1 .hl{color:var(--g)}
+.hero p{font-size:clamp(1rem,2.5vw,1.15rem);color:var(--mu);max-width:520px;margin-bottom:36px;line-height:1.7}
+.btn-hero{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--g);color:#fff;font-size:16px;font-weight:600;
+  padding:14px 32px;border-radius:12px;text-decoration:none;
+  border:none;cursor:pointer;
+  box-shadow:0 4px 20px rgba(16,185,129,.35);transition:all .2s;
+  font-family:'Inter',sans-serif;
+}
+.btn-hero:hover{background:#059669;transform:translateY(-2px)}
+.stats{display:flex;gap:36px;margin-top:52px;flex-wrap:wrap;justify-content:center}
+.stat strong{display:block;font-size:1.8rem;font-weight:700;color:var(--gd)}
+.stat small{font-size:12px;color:var(--mu)}
+
+/* ── SEÇÕES ── */
+section{padding:64px 20px;max-width:900px;margin:0 auto}
+.slabel{display:inline-block;font-size:13px;font-weight:600;color:var(--g);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase}
+.stitle{font-size:clamp(1.5rem,4vw,2rem);font-weight:700;margin-bottom:8px;line-height:1.3}
+.ssub{color:var(--mu);margin-bottom:36px;max-width:560px}
+.card{background:#fff;border-radius:var(--rad);border:1px solid var(--br);padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+
+/* ── PAINEL ── */
+.dgrid{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:600px){.dgrid{grid-template-columns:1fr 1fr}}
+
+.igrp{margin-bottom:16px}
+.igrp label{display:block;font-size:14px;font-weight:500;color:var(--mu);margin-bottom:6px}
+.iwrap{position:relative}
+.iwrap .pfx{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--mu);pointer-events:none}
+.iwrap input{
+  width:100%;padding:10px 12px 10px 30px;
+  border:1.5px solid var(--br);border-radius:10px;
+  font-size:15px;font-family:'Inter',sans-serif;
+  outline:none;transition:border-color .2s;background:#fff;color:var(--tx);
+}
+.iwrap input.np{padding-left:12px}
+.iwrap input:focus{border-color:var(--g)}
+
+.elist{list-style:none}
+.eitem{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--br)}
+.eitem:last-child{border:none}
+.eico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ename{flex:1;font-size:13px;font-weight:500}
+.eitem input[type=number]{
+  width:86px;padding:6px 9px;text-align:right;
+  border:1.5px solid var(--br);border-radius:8px;
+  font-size:13px;font-family:'Inter',sans-serif;
+  outline:none;transition:border-color .2s;
+}
+.eitem input[type=number]:focus{border-color:var(--b)}
+
+.pw{margin-bottom:12px}
+.plbl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.pbar{height:11px;background:var(--br);border-radius:6px;overflow:hidden}
+.pfill{height:100%;border-radius:6px;transition:width .55s cubic-bezier(.4,0,.2,1),background .3s}
+
+.balcard{margin-top:18px;padding:18px;border-radius:14px;transition:all .4s}
+.balcard .bl{font-size:13px;font-weight:500}
+.balcard .bv{font-size:2rem;font-weight:700;margin:2px 0 4px}
+.balcard .bt{font-size:12px}
+
+.tipbox{display:flex;gap:8px;align-items:flex-start;padding:11px 14px;border-radius:0 10px 10px 0;font-size:13px;margin-top:14px}
+.tipbox .ti{font-size:15px;flex-shrink:0;margin-top:1px}
+.tip-o{background:var(--ol);border-left:4px solid var(--o);color:#92400E}
+.tip-g{background:var(--gl);border-left:4px solid var(--g);color:var(--gd)}
+
+/* ── METAS ── */
+.rgrp{margin-bottom:16px}
+.rgrp label{display:flex;justify-content:space-between;font-size:14px;font-weight:500;margin-bottom:8px}
+.rgrp label span{color:var(--g);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--g);cursor:pointer}
+.mresult{margin-top:20px;padding:20px;background:var(--gl);border-radius:14px;border-left:4px solid var(--g)}
+.mresult p{font-size:14px;color:var(--gd);margin-bottom:2px}
+.mresult .big{font-size:1.6rem;font-weight:700;color:var(--gd)}
+.mresult em{font-size:13px;color:#059669;font-style:normal}
+.tbar{display:flex;gap:4px;flex-wrap:wrap;margin-top:14px}
+.tdot{width:26px;height:26px;border-radius:7px;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;transition:transform .15s;cursor:default}
+.tdot:hover{transform:scale(1.18)}
+.tdot.fut{background:#A7F3D0;color:var(--gd)}
+
+/* ── INVESTIMENTOS ── */
+.igrid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:580px){.igrid{grid-template-columns:1fr 1fr}}
+@media(min-width:800px){.igrid{grid-template-columns:repeat(3,1fr)}}
+.icard{padding:20px;border-radius:14px;border:1.5px solid var(--br);background:#fff;cursor:pointer;transition:all .2s;position:relative}
+.icard:hover{border-color:var(--g);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.07)}
+.ibadge{position:absolute;top:12px;right:12px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
+.bs{background:var(--gl);color:var(--gd)}
+.bo{background:var(--bl);color:var(--bd)}
+.iico{font-size:28px;margin-bottom:10px}
+.icard h3{font-size:15px;font-weight:600;margin-bottom:6px}
+.icard p{font-size:13px;color:var(--mu);line-height:1.5;margin-bottom:10px}
+.iyield strong{color:var(--g);font-size:15px}
+.iyield,.imin{font-size:13px;color:var(--mu)}
+.idet{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--br);font-size:12px;color:var(--mu);line-height:1.6}
+.icard.open .idet{display:block}
+.idet a{color:var(--g);font-weight:600;text-decoration:none;display:inline-block;margin-top:6px}
+
+.simbox{background:var(--bl);border:1.5px solid #BFDBFE;padding:24px;border-radius:14px;margin-top:28px}
+.simbox h3{font-size:16px;font-weight:600;color:var(--bd);margin-bottom:16px}
+.siminps{display:flex;gap:16px;flex-wrap:wrap}
+.siminps .igrp{flex:1;min-width:130px;margin:0}
+.simr{margin-top:14px;background:#fff;border-radius:10px;padding:14px 16px}
+.simline{display:flex;justify-content:space-between;font-size:14px;padding:4px 0}
+.simline span{color:var(--mu)}
+.simtot{border-top:1px solid var(--br);margin-top:6px;padding-top:8px}
+.simtot strong{color:var(--b);font-size:16px}
+
+/* ── MODAL ── */
+.mbg{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:20px}
+.mbg.open{display:flex}
+.mbox{background:#fff;border-radius:20px;padding:28px 24px;max-width:340px;width:100%;text-align:center;animation:fadeUp .3s ease}
+.mbox h3{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.mbox p{font-size:14px;color:var(--mu);margin-bottom:20px}
+.macts{display:flex;gap:10px}
+.macts button{flex:1}
+.btn-cinza{background:#F3F4F6;color:var(--tx);border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer}
+.btn-cinza:hover{background:var(--br)}
+.btn-danger{background:var(--r);color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer}
+.btn-danger:hover{background:#DC2626}
+
+footer{background:var(--gd);color:rgba(255,255,255,.8);text-align:center;padding:32px 20px;font-size:13px;margin-top:40px}
+footer strong{color:#fff}
+
+@media(max-width:480px){
+  .nav-links{display:none}
+  .uname{max-width:70px}
+  .lcard{padding:26px 18px}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ TELA DE LOGIN ════ -->
+<div id="login-screen">
+  <div class="lcard">
+    <div class="lic">💰</div>
+    <h1>Meu Bolso</h1>
+    <p class="lsub">Entre para acessar seu planejamento salvo ou crie uma conta para começar.</p>
+
+    <div class="msg-erro" id="msg-erro"></div>
+
+    <!-- Formulário de acesso -->
+    <div id="form-acesso">
+      <div class="field" id="wrap-nome" style="display:none">
+        <label>Seu nome</label>
+        <input type="text" id="inp-nome" placeholder="Como quer ser chamado?">
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" id="inp-email" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="inp-senha" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-verde" id="btn-entrar">Entrar</button>
+      <p class="toggle-txt" id="toggle-p">
+        Não tem conta? <a id="toggle-a">Criar conta grátis</a>
+      </p>
+    </div>
+
+    <!-- Contas salvas neste dispositivo -->
+    <div class="saved-users" id="saved-users" style="display:none">
+      <p>📱 Acessos salvos neste dispositivo:</p>
+      <div id="saved-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div id="app">
+  <nav>
+    <div class="nav-logo"><span>💰</span> Meu Bolso</div>
+    <div class="nav-links">
+      <a href="#painel">Painel</a>
+      <a href="#metas">Metas</a>
+      <a href="#investir">Investir</a>
+    </div>
+    <div class="nav-r">
+      <span id="sync" class="saved">✓ Salvo</span>
+      <div class="uchip" id="uchip">
+        <div class="uav" id="uav"><span id="uini">?</span></div>
+        <span class="uname" id="uname-nav"></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="badge">✨ Dados salvos neste dispositivo</div>
+    <h1>Seu dinheiro no <span class="hl">seu controle</span>, sem complicação</h1>
+    <p>Veja para onde vai cada real, planeje seus sonhos e faça seu dinheiro render mais.</p>
+    <a href="#painel" class="btn-hero">Ir para meu painel →</a>
+    <div class="stats">
+      <div class="stat"><strong>3 min</strong><small>para organizar tudo</small></div>
+      <div class="stat"><strong>100%</strong><small>no seu dispositivo</small></div>
+      <div class="stat"><strong>Auto</strong><small>salvo ao editar</small></div>
+    </div>
+  </div>
+
+  <!-- PAINEL -->
+  <section id="painel">
+    <div class="slabel">📊 Painel</div>
+    <div class="stitle">Quanto entra e quanto sai?</div>
+    <p class="ssub">Edite os valores — tudo é salvo automaticamente.</p>
+    <div class="dgrid">
+      <div class="card">
+        <div class="igrp">
+          <label>💵 Minha renda mensal</label>
+          <div class="iwrap"><span class="pfx">R$</span><input type="number" id="income" value="2500" min="0"></div>
+        </div>
+        <p style="font-size:13px;font-weight:600;color:var(--mu);margin-bottom:10px">📋 Despesas fixas</p>
+        <ul class="elist">
+          <li class="eitem"><div class="eico" style="background:#FEF3C7">🏠</div><span class="ename">Moradia</span><input type="number" class="einp" data-k="moradia"     value="800"  min="0"></li>
+          <li class="eitem"><div class="eico" style="background:#DBEAFE">🚌</div><span class="ename">Transporte</span><input type="number" class="einp" data-k="transporte"  value="200"  min="0"></li>
+          <li class="eitem"><div class="eico" style="background:#F3E8FF">🛒</div><span class="ename">Alimentação</span><input type="number" class="einp" data-k="alimentacao" value="600"  min="0"></li>
+          <li class="eitem"><div class="eico" style="background:#DCFCE7">💡</div><span class="ename">Contas (luz, água, net)</span><input type="number" class="einp" data-k="contas"      value="250"  min="0"></li>
+          <li class="eitem"><div class="eico" style="background:#FEE2E2">📱</div><span class="ename">Lazer e extras</span><input type="number" class="einp" data-k="lazer"      value="150"  min="0"></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="pw">
+          <div class="plbl"><span>Comprometido do salário</span><span id="pct-lbl" style="font-weight:600">80%</span></div>
+          <div class="pbar"><div class="pfill" id="main-fill" style="width:80%;background:var(--g)"></div></div>
+        </div>
+        <div id="exp-bars"></div>
+        <div class="balcard" id="balcard">
+          <span class="bl">💰 Sobra no fim do mês</span>
+          <div class="bv" id="bal-v">R$ 500</div>
+          <span class="bt" id="bal-t">Ótimo! Você ainda tem uma reserva.</span>
+        </div>
+        <div id="alertbox" class="tipbox tip-o" style="display:none">
+          <span class="ti">⚠️</span><span id="alert-t"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METAS -->
+  <section id="metas">
+    <div class="slabel">🎯 Metas</div>
+    <div class="stitle">O que você quer conquistar?</div>
+    <p class="ssub">Defina seu sonho e veja quanto precisa guardar por mês.</p>
+    <div class="card">
+      <div class="igrp">
+        <label>✏️ Nome do objetivo</label>
+        <div class="iwrap"><input type="text" id="mname" value="Notebook novo" class="np"></div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div class="igrp" style="flex:1;min-width:130px">
+          <label>💸 Quanto custa?</label>
+          <div class="iwrap"><span class="pfx">R$</span><input type="number" id="mval" value="3000" min="1"></div>
+        </div>
+        <div class="igrp" style="flex:1;min-width:130px">
+          <label>🏦 Já tenho guardado</label>
+          <div class="iwrap"><span class="pfx">R$</span><input type="number" id="msaved" value="0" min="0"></div>
+        </div>
+      </div>
+      <div class="rgrp">
+        <label>📅 Em quantos meses? <span id="mo-lbl">12 meses</span></label>
+        <input type="range" id="mmonths" min="1" max="60" value="12">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin-top:4px">
+          <span>1 mês</span><span>2 anos</span><span>3 anos</span><span>5 anos</span>
+        </div>
+      </div>
+      <div class="mresult">
+        <p>Para <strong id="mname-out">Notebook novo</strong> em <span id="mmo-out">12</span> meses, guarde:</p>
+        <span class="big" id="mmonthly">R$ 250,00</span> <em>por mês</em>
+        <div class="tbar" id="timeline"></div>
+        <p id="mfeas" style="margin-top:10px;font-size:13px"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INVESTIR -->
+  <section id="investir">
+    <div class="slabel">📈 Investimentos</div>
+    <div class="stitle">Faça seu dinheiro trabalhar</div>
+    <p class="ssub">Simples, seguros e melhores que a poupança. Clique para saber mais.</p>
+    <div class="igrid">
+      <div class="icard" onclick="this.classList.toggle('open')">
+        <span class="ibadge bs">Muito seguro</span>
+        <div class="iico">🏛️</div><h3>Tesouro Selic</h3>
+        <p>Emprestar ao governo. Ele devolve com juros. A mais segura do Brasil.</p>
+        <div class="iyield">Rende: <strong>~13% ao ano</strong></div>
+        <div class="imin">Mínimo: R$ 30</div>
+        <div class="idet">
+          <strong>Como funciona:</strong> Compre pelo Tesouro Direto ou corretora. Rende todo dia.<br><br>
+          <strong>Para sacar:</strong> Qualquer dia útil, sem perder rendimentos.<br><br>
+          <strong>Imposto:</strong> IR 15–22,5% sobre o lucro — ainda melhor que a poupança.<br>
+          <a href="https://www.tesourodireto.com.br" target="_blank" rel="noopener">Acessar Tesouro Direto →</a>
+        </div>
+      </div>
+      <div class="icard" onclick="this.classList.toggle('open')">
+        <span class="ibadge bs">Muito seguro</span>
+        <div class="iico">🏦</div><h3>CDB (banco)</h3>
+        <p>Emprestar ao banco. Ele paga juros para usar o seu dinheiro.</p>
+        <div class="iyield">Rende: <strong>100–120% do CDI</strong></div>
+        <div class="imin">Mínimo: a partir de R$ 1</div>
+        <div class="idet">
+          <strong>O que é CDI:</strong> Taxa parecida com a Selic. 100% CDI ≈ rendimento da Selic.<br><br>
+          <strong>Proteção:</strong> FGC garante até R$ 250 mil por banco.<br><br>
+          <strong>Atenção:</strong> Alguns CDBs têm prazo mínimo para sacar.
+        </div>
+      </div>
+      <div class="icard" onclick="this.classList.toggle('open')">
+        <span class="ibadge bo">Seguro</span>
+        <div class="iico">💳</div><h3>Conta que rende</h3>
+        <p>Nubank, Inter, C6 — o saldo parado já rende automaticamente.</p>
+        <div class="iyield">Rende: <strong>~100% do CDI</strong></div>
+        <div class="imin">Sem valor mínimo</div>
+        <div class="idet">
+          <strong>Como funciona:</strong> Dinheiro na conta rende sozinho, sem nenhuma ação sua.<br><br>
+          <strong>Liquidez total:</strong> Saque a qualquer hora, sem perder o rendimento do dia.<br><br>
+          <strong>Ideal para:</strong> Reserva de emergência (3 a 6 meses de gastos).
+        </div>
+      </div>
+    </div>
+
+    <div class="simbox">
+      <h3>🧮 Simule quanto você teria</h3>
+      <div class="siminps">
+        <div class="igrp">
+          <label style="font-size:13px;color:var(--bd);font-weight:500;display:block;margin-bottom:6px">Guardar por mês</label>
+          <div class="iwrap"><span class="pfx">R$</span><input type="number" id="samt" value="200" min="1" style="background:#fff"></div>
+        </div>
+        <div class="igrp">
+          <label style="font-size:13px;color:var(--bd);font-weight:500;display:block;margin-bottom:6px">Por quantos meses?</label>
+          <div class="iwrap"><input type="number" id="smo" value="12" min="1" max="120" class="np" style="background:#fff"></div>
+        </div>
+      </div>
+      <div class="simr">
+        <div class="simline"><span>💰 Total investido</span><strong id="s-inv">R$ 2.400</strong></div>
+        <div class="simline"><span>🏛️ Tesouro Selic</span><strong id="s-ts" style="color:var(--g)">+R$ 159</strong></div>
+        <div class="simline"><span>🏦 CDB (110% CDI)</span><strong id="s-cd" style="color:var(--g)">+R$ 175</strong></div>
+        <div class="simline"><span>🐷 Poupança (comparativo)</span><strong id="s-po" style="color:var(--mu)">+R$ 111</strong></div>
+        <div class="simline simtot"><span>📈 Com Tesouro Selic, você teria</span><strong id="s-tot">R$ 2.559</strong></div>
+      </div>
+    </div>
+
+    <div class="tipbox tip-g" style="margin-top:20px">
+      <span class="ti">💡</span>
+      <span><strong>Dica de ouro:</strong> Monte uma reserva de emergência (3 a 6 meses de gastos) em conta com rendimento diário antes de qualquer outro investimento.</span>
+    </div>
+  </section>
+
+  <footer>
+    <strong>Meu Bolso</strong> — Feito com 💚 para quem quer entender suas finanças sem complicação.<br>
+    <span style="font-size:11px;margin-top:6px;display:block">App educativo. Para decisões importantes, consulte um profissional certificado (CFP).</span>
+  </footer>
+</div>
+
+<!-- MODAL SAIR -->
+<div class="mbg" id="modal-sair">
+  <div class="mbox">
+    <h3>Sair da conta?</h3>
+    <p>Seus dados continuam salvos neste dispositivo.</p>
+    <div class="macts">
+      <button class="btn-cinza"  id="btn-cancelar">Cancelar</button>
+      <button class="btn-danger" id="btn-sair">Sair</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function gel(id) { return document.getElementById(id); }
+
+function fmt(v) {
+  return 'R$ ' + parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtS(v) { return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); }
+
+var EXP_C = { moradia:'#F59E0B', transporte:'#3B82F6', alimentacao:'#8B5CF6', contas:'#10B981', lazer:'#EF4444' };
+var EXP_L = { moradia:'🏠 Moradia', transporte:'🚌 Transporte', alimentacao:'🛒 Alimentação', contas:'💡 Contas', lazer:'📱 Lazer' };
+
+// ═══════════════════════════════════════════════
+//  RENDER — PAINEL
+// ═══════════════════════════════════════════════
+function renderPainel() {
+  var income = parseFloat(gel('income').value) || 0;
+  var total = 0, items = [];
+  document.querySelectorAll('.einp').forEach(function(i) {
+    var v = parseFloat(i.value) || 0;
+    total += v;
+    items.push({ k: i.dataset.k, v: v });
+  });
+  var pct = income > 0 ? Math.min((total / income) * 100, 100) : 0;
+  var bal = income - total;
+  var cor = pct > 90 ? '#EF4444' : pct > 75 ? '#F59E0B' : '#10B981';
+
+  gel('main-fill').style.width      = pct + '%';
+  gel('main-fill').style.background = cor;
+  gel('pct-lbl').textContent        = Math.round(pct) + '%';
+
+  gel('exp-bars').innerHTML = items.map(function(it) {
+    var p = income > 0 ? Math.min((it.v / income) * 100, 100) : 0;
+    return '<div class="pw" style="margin-bottom:10px">'
+      + '<div class="plbl"><span style="font-size:12px;color:var(--mu)">' + EXP_L[it.k] + '</span>'
+      + '<span style="font-size:12px;font-weight:500">' + fmtS(it.v) + '</span></div>'
+      + '<div class="pbar" style="height:8px"><div class="pfill" style="width:' + p + '%;background:' + (EXP_C[it.k] || '#6B7280') + '"></div></div>'
+      + '</div>';
+  }).join('');
+
+  var bc = gel('balcard');
+  gel('bal-v').textContent = fmt(bal);
+  if (bal < 0) {
+    bc.style.background = '#FEE2E2'; bc.style.border = '1.5px solid #FECACA';
+    gel('bal-v').style.color = '#DC2626'; gel('bal-t').style.color = '#DC2626';
+    gel('bal-t').textContent = 'Atenção: seus gastos passam sua renda!';
+    gel('alertbox').style.display = 'flex';
+    gel('alert-t').textContent = 'Você gasta R$ ' + Math.abs(Math.round(bal)).toLocaleString('pt-BR') + ' a mais do que ganha.';
+  } else if (pct > 90) {
+    bc.style.background = '#FEF3C7'; bc.style.border = '1.5px solid #FDE68A';
+    gel('bal-v').style.color = '#92400E'; gel('bal-t').style.color = '#92400E';
+    gel('bal-t').textContent = 'Quase no limite. Tente reduzir alguma despesa.';
+    gel('alertbox').style.display = 'flex';
+    gel('alert-t').textContent = 'Mais de 90% da sua renda está comprometida.';
+  } else {
+    bc.style.background = '#D1FAE5'; bc.style.border = '1.5px solid #A7F3D0';
+    gel('bal-v').style.color = '#065F46'; gel('bal-t').style.color = '#065F46';
+    gel('bal-t').textContent = bal > income * 0.2 ? '🌟 Ótimo! Você tem boa margem para guardar.' : '✅ Suas contas estão equilibradas.';
+    gel('alertbox').style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER — META
+// ═══════════════════════════════════════════════
+function renderMeta() {
+  var name   = gel('mname').value   || 'Seu objetivo';
+  var val    = parseFloat(gel('mval').value)    || 0;
+  var saved  = parseFloat(gel('msaved').value)  || 0;
+  var months = parseInt(gel('mmonths').value)   || 1;
+  var monthly = Math.max(val - saved, 0) / months;
+
+  gel('mname-out').textContent = name;
+  gel('mmo-out').textContent   = months;
+  gel('mo-lbl').textContent    = months + (months === 1 ? ' mês' : ' meses');
+  gel('mmonthly').textContent  = fmt(monthly);
+
+  var tl = gel('timeline');
+  tl.innerHTML = '';
+  var maxD = Math.min(months, 24);
+  for (var i = 1; i <= maxD; i++) {
+    var d = document.createElement('div');
+    d.className   = 'tdot';
+    d.title       = 'Mês ' + i + ': ' + fmt(monthly * i + saved);
+    d.textContent = i;
+    if (maxD > 12 && i % 3 !== 0) { d.style.fontSize = '0'; d.style.width = d.style.height = '14px'; }
+    tl.appendChild(d);
+  }
+  if (months > 24) {
+    var extra = document.createElement('div');
+    extra.className   = 'tdot fut';
+    extra.style.cssText = 'font-size:9px;width:auto;padding:0 6px';
+    extra.textContent = '+' + (months - 24);
+    tl.appendChild(extra);
+  }
+
+  var income = parseFloat(gel('income').value) || 0;
+  var feas   = gel('mfeas');
+  if (income > 0) {
+    var p = (monthly / income) * 100;
+    if (p <= 10) {
+      feas.innerHTML   = '✅ <strong>Meta tranquila!</strong> Representa ' + Math.round(p) + '% da sua renda.';
+      feas.style.color = '#065F46';
+    } else if (p <= 20) {
+      feas.innerHTML   = '⚡ <strong>Meta alcançável.</strong> Vai exigir ' + Math.round(p) + '% da sua renda.';
+      feas.style.color = '#92400E';
+    } else {
+      feas.innerHTML   = '💪 <strong>Meta desafiadora.</strong> ' + Math.round(p) + '% da renda — considere aumentar o prazo.';
+      feas.style.color = '#991B1B';
+    }
+  } else { feas.textContent = ''; }
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER — SIMULADOR
+// ═══════════════════════════════════════════════
+function renderSim() {
+  var amt = parseFloat(gel('samt').value) || 0;
+  var mo  = parseInt(gel('smo').value)    || 1;
+  var inv = amt * mo;
+  var rS = 0.1325 / 12, rC = 0.1325 * 1.10 / 12, rP = 0.07 / 12;
+  var s = 0, c = 0, p = 0;
+  for (var i = 0; i < mo; i++) { s = (s + amt) * (1 + rS); c = (c + amt) * (1 + rC); p = (p + amt) * (1 + rP); }
+  gel('s-inv').textContent = fmtS(inv);
+  gel('s-ts').textContent  = '+' + fmtS(s - inv);
+  gel('s-cd').textContent  = '+' + fmtS(c - inv);
+  gel('s-po').textContent  = '+' + fmtS(p - inv);
+  gel('s-tot').textContent = fmtS(s);
+}
+
+// ═══════════════════════════════════════════════
+//  PERSISTÊNCIA — localStorage por usuário
+// ═══════════════════════════════════════════════
+var currentUser = null; // { id, nome, email }
+var saveTimer   = null;
+
+function chaveDB(uid) { return 'meubolso_dados_' + uid; }
+function chaveUsuarios() { return 'meubolso_usuarios'; }
+
+function getUsuarios() {
+  try { return JSON.parse(localStorage.getItem(chaveUsuarios()) || '[]'); } catch(e) { return []; }
+}
+function salvarUsuario(user) {
+  var lista = getUsuarios();
+  var idx   = lista.findIndex(function(u) { return u.id === user.id; });
+  if (idx >= 0) lista[idx] = user; else lista.push(user);
+  localStorage.setItem(chaveUsuarios(), JSON.stringify(lista));
+}
+
+function coletarDados() {
+  var exp = {};
+  document.querySelectorAll('.einp').forEach(function(i) { exp[i.dataset.k] = parseFloat(i.value) || 0; });
+  return {
+    income:     parseFloat(gel('income').value)   || 0,
+    expenses:   exp,
+    metaName:   gel('mname').value,
+    metaVal:    parseFloat(gel('mval').value)     || 0,
+    metaSaved:  parseFloat(gel('msaved').value)   || 0,
+    metaMonths: parseInt(gel('mmonths').value)    || 12,
+    simAmt:     parseFloat(gel('samt').value)     || 0,
+    simMo:      parseInt(gel('smo').value)        || 12,
+    savedAt:    Date.now()
+  };
+}
+
+function aplicarDados(d) {
+  if (!d) return;
+  if (d.income     != null) gel('income').value   = d.income;
+  if (d.metaName   != null) gel('mname').value    = d.metaName;
+  if (d.metaVal    != null) gel('mval').value     = d.metaVal;
+  if (d.metaSaved  != null) gel('msaved').value   = d.metaSaved;
+  if (d.metaMonths != null) gel('mmonths').value  = d.metaMonths;
+  if (d.simAmt     != null) gel('samt').value     = d.simAmt;
+  if (d.simMo      != null) gel('smo').value      = d.simMo;
+  if (d.expenses) {
+    document.querySelectorAll('.einp').forEach(function(i) {
+      if (d.expenses[i.dataset.k] != null) i.value = d.expenses[i.dataset.k];
+    });
+  }
+  renderPainel(); renderMeta(); renderSim();
+}
+
+function salvarDados() {
+  if (!currentUser) return;
+  clearTimeout(saveTimer);
+  gel('sync').className   = 'saving';
+  gel('sync').textContent = '💾 Salvando...';
+  saveTimer = setTimeout(function() {
+    try {
+      localStorage.setItem(chaveDB(currentUser.id), JSON.stringify(coletarDados()));
+      gel('sync').className   = 'saved';
+      gel('sync').textContent = '✓ Salvo';
+    } catch(e) {
+      gel('sync').className   = 'saved';
+      gel('sync').textContent = '⚠ Erro';
+    }
+  }, 800);
+}
+
+function ligarInputs() {
+  function t()  { renderPainel(); renderMeta(); salvarDados(); }
+  function ts() { renderSim(); salvarDados(); }
+  gel('income').addEventListener('input', t);
+  document.querySelectorAll('.einp').forEach(function(i)  { i.addEventListener('input', t);  });
+  gel('mname').addEventListener('input',   function() { renderMeta(); salvarDados(); });
+  gel('mval').addEventListener('input',    t);
+  gel('msaved').addEventListener('input',  t);
+  gel('mmonths').addEventListener('input', t);
+  gel('samt').addEventListener('input', ts);
+  gel('smo').addEventListener('input',  ts);
+}
+
+// ═══════════════════════════════════════════════
+//  AUTH — login simples por e-mail + senha (localStorage)
+// ═══════════════════════════════════════════════
+function hashSenha(senha) {
+  // hash simples (não criptográfico) apenas para não guardar senha em texto puro
+  var h = 0, i, chr;
+  for (i = 0; i < senha.length; i++) {
+    chr = senha.charCodeAt(i);
+    h   = ((h << 5) - h) + chr;
+    h  |= 0;
+  }
+  return 'h' + Math.abs(h).toString(36);
+}
+
+function mostrarErro(msg) {
+  var el = gel('msg-erro');
+  el.textContent    = msg;
+  el.style.display  = msg ? 'block' : 'none';
+}
+
+function entrarComUsuario(user) {
+  currentUser = user;
+  salvarUsuario(user);
+  // salva sessão ativa
+  sessionStorage.setItem('meubolso_sessao', JSON.stringify(user));
+
+  // Atualiza nav
+  gel('uname-nav').textContent = user.nome.split(' ')[0];
+  gel('uini').textContent      = user.nome.charAt(0).toUpperCase();
+
+  // Carrega dados
+  try {
+    var raw = localStorage.getItem(chaveDB(user.id));
+    if (raw) aplicarDados(JSON.parse(raw));
+  } catch(e) {}
+
+  // Mostra app
+  gel('login-screen').classList.add('gone');
+  gel('app').classList.add('on');
+  ligarInputs();
+  renderPainel(); renderMeta(); renderSim();
+}
+
+// ── Contas salvas ──
+function renderContasSalvas() {
+  var lista = getUsuarios();
+  if (lista.length === 0) { gel('saved-users').style.display = 'none'; return; }
+  gel('saved-users').style.display = 'block';
+  gel('saved-list').innerHTML = lista.map(function(u) {
+    return '<button class="saved-user-btn" data-id="' + u.id + '">'
+      + '<div class="av">' + u.nome.charAt(0).toUpperCase() + '</div>'
+      + '<div class="info"><strong>' + u.nome + '</strong><small>' + u.email + '</small></div>'
+      + '<span style="font-size:18px">→</span>'
+      + '</button>';
+  }).join('');
+  document.querySelectorAll('.saved-user-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var uid  = btn.dataset.id;
+      var user = getUsuarios().find(function(u) { return u.id === uid; });
+      if (user) entrarComUsuario(user);
+    });
+  });
+}
+
+// ── Botão Entrar / Criar conta ──
+var modoSignUp = false;
+
+gel('btn-entrar').addEventListener('click', function() {
+  mostrarErro('');
+  var email = gel('inp-email').value.trim().toLowerCase();
+  var senha = gel('inp-senha').value;
+  if (!email || !senha) { mostrarErro('Preencha e-mail e senha.'); return; }
+  if (senha.length < 4) { mostrarErro('A senha precisa ter pelo menos 4 caracteres.'); return; }
+
+  var hash    = hashSenha(senha);
+  var usuarios = getUsuarios();
+
+  if (modoSignUp) {
+    // Cadastro
+    var nome = (gel('inp-nome').value.trim() || email.split('@')[0]);
+    var existe = usuarios.find(function(u) { return u.email === email; });
+    if (existe) { mostrarErro('Este e-mail já está cadastrado. Faça login.'); return; }
+    var novoUser = {
+      id:    'u_' + Date.now().toString(36),
+      nome:  nome,
+      email: email,
+      hash:  hash
+    };
+    entrarComUsuario(novoUser);
+  } else {
+    // Login
+    var user = usuarios.find(function(u) { return u.email === email && u.hash === hash; });
+    if (!user) { mostrarErro('E-mail ou senha incorretos.'); return; }
+    entrarComUsuario(user);
+  }
+});
+
+// Enter nos campos
+['inp-email', 'inp-senha'].forEach(function(id) {
+  gel(id).addEventListener('keydown', function(e) { if (e.key === 'Enter') gel('btn-entrar').click(); });
+});
+
+// Alternar login / cadastro
+gel('toggle-a').addEventListener('click', function alternar() {
+  modoSignUp = !modoSignUp;
+  gel('btn-entrar').textContent        = modoSignUp ? 'Criar conta' : 'Entrar';
+  gel('wrap-nome').style.display       = modoSignUp ? 'block' : 'none';
+  gel('toggle-p').innerHTML            = modoSignUp
+    ? 'Já tem conta? <a id="toggle-a">Entrar</a>'
+    : 'Não tem conta? <a id="toggle-a">Criar conta grátis</a>';
+  gel('toggle-a').addEventListener('click', alternar);
+  mostrarErro('');
+});
+
+// ── Logout ──
+gel('uchip').addEventListener('click',    function() { gel('modal-sair').classList.add('open'); });
+gel('btn-cancelar').addEventListener('click', function() { gel('modal-sair').classList.remove('open'); });
+gel('btn-sair').addEventListener('click', function() {
+  gel('modal-sair').classList.remove('open');
+  sessionStorage.removeItem('meubolso_sessao');
+  currentUser = null;
+  gel('app').classList.remove('on');
+  gel('login-screen').classList.remove('gone');
+  // limpa campos
+  gel('inp-email').value = '';
+  gel('inp-senha').value = '';
+  mostrarErro('');
+  renderContasSalvas();
+});
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+renderPainel(); renderMeta(); renderSim();
+renderContasSalvas();
+
+// Retoma sessão se ainda ativa
+try {
+  var sessao = JSON.parse(sessionStorage.getItem('meubolso_sessao') || 'null');
+  if (sessao && sessao.id) entrarComUsuario(sessao);
+} catch(e) {}
+</script>
+</body>
+</html>
